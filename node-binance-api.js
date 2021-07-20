@@ -1,6 +1,6 @@
 /* ============================================================
- * node-binance-api
- * https://github.com/jaggedsoft/node-binance-api
+ * node-binance-api-for-browser
+ * https://github.com/jaggedsoft/node-binance-api-for-browser
  * ============================================================
  * Copyright 2017-, Jon Eyrick
  * Released under the MIT License
@@ -10,7 +10,7 @@
 let api = function Binance( options = {} ) {
     if ( !new.target ) return new api( options ); // Legacy support for calling the constructor without 'new'
     let Binance = this; // eslint-disable-line consistent-this
-    const WebSocket = require( 'ws' );
+    const WebSocket = require( 'isomorphic-ws' );
     const request = require( 'request' );
     const crypto = require( 'crypto' );
     const file = require( 'fs' );
@@ -700,17 +700,18 @@ let api = function Binance( options = {} ) {
         ws.reconnect = Binance.options.reconnect;
         ws.endpoint = endpoint;
         ws.isAlive = false;
-        ws.on( 'open', handleSocketOpen.bind( ws, opened_callback ) );
-        ws.on( 'pong', handleSocketHeartbeat );
-        ws.on( 'error', handleSocketError );
-        ws.on( 'close', handleSocketClose.bind( ws, reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleSocketOpen.bind(ws, opened_callback);
+        ws.onpong = handleSocketHeartbeat;
+        ws.onerror = handleSocketError;
+        ws.onclose = handleSocketClose.bind(ws, reconnect);
+        ws.onmessage = data => {
             try {
-                callback( JSON.parse( data ) );
-            } catch ( error ) {
-                Binance.options.log( 'Parse error: ' + error.message );
+                callback(JSON.parse(data));
             }
-        } );
+            catch (error) {
+                Binance.options.log('Parse error: ' + error.message);
+            }
+        };
         return ws;
     };
 
@@ -751,17 +752,17 @@ let api = function Binance( options = {} ) {
         if ( Binance.options.verbose ) {
             Binance.options.log( 'CombinedStream: Subscribed to [' + ws.endpoint + '] ' + queryParams );
         }
-        ws.on( 'open', handleSocketOpen.bind( ws, opened_callback ) );
-        ws.on( 'pong', handleSocketHeartbeat );
-        ws.on( 'error', handleSocketError );
-        ws.on( 'close', handleSocketClose.bind( ws, reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleSocketOpen.bind(ws, opened_callback);
+        ws.onpong = handleSocketHeartbeat;
+        ws.onerror = handleSocketError;
+        ws.onclose = handleSocketClose.bind(ws, reconnect);
+        ws.onmessage = data => {
             try {
                 callback( JSON.parse( data ).data );
             } catch ( error ) {
                 Binance.options.log( 'CombinedStream: Parse error: ' + error.message );
             }
-        } );
+        };
         return ws;
     };
 
@@ -862,7 +863,8 @@ let api = function Binance( options = {} ) {
      * Used to subscribe to a single futures websocket endpoint
      * @param {string} endpoint - endpoint to connect to
      * @param {function} callback - the function to call when information is received
-     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+     *     {function}, id {string}
      * @return {WebSocket} - websocket reference
      */
     const futuresSubscribeSingle = function ( endpoint, callback, params = {} ) {
@@ -896,17 +898,17 @@ let api = function Binance( options = {} ) {
         ws.reconnect = Binance.options.reconnect;
         ws.endpoint = endpoint;
         ws.isAlive = false;
-        ws.on( 'open', handleFuturesSocketOpen.bind( ws, params.openCallback ) );
-        ws.on( 'pong', handleFuturesSocketHeartbeat );
-        ws.on( 'error', handleFuturesSocketError );
-        ws.on( 'close', handleFuturesSocketClose.bind( ws, params.reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleFuturesSocketOpen.bind( ws, params.openCallback );
+        ws.onpong = handleFuturesSocketHeartbeat;
+        ws.onerror = handleFuturesSocketError;
+        ws.onclose = handleFuturesSocketClose.bind( ws, params.reconnect );
+        ws.onmessage = data => {
             try {
                 callback( JSON.parse( data ) );
             } catch ( error ) {
                 Binance.options.log( 'Parse error: ' + error.message );
             }
-        } );
+        };
         return ws;
     };
 
@@ -914,7 +916,8 @@ let api = function Binance( options = {} ) {
      * Used to subscribe to a combined futures websocket endpoint
      * @param {string} streams - streams to connect to
      * @param {function} callback - the function to call when information is received
-     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+     *     {function}, id {string}
      * @return {WebSocket} - websocket reference
      */
     const futuresSubscribe = function ( streams, callback, params = {} ) {
@@ -951,17 +954,17 @@ let api = function Binance( options = {} ) {
         if ( Binance.options.verbose ) {
             Binance.options.log( `futuresSubscribe: Subscribed to [${ ws.endpoint }] ${ queryParams }` );
         }
-        ws.on( 'open', handleFuturesSocketOpen.bind( ws, params.openCallback ) );
-        ws.on( 'pong', handleFuturesSocketHeartbeat );
-        ws.on( 'error', handleFuturesSocketError );
-        ws.on( 'close', handleFuturesSocketClose.bind( ws, params.reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleFuturesSocketOpen.bind( ws, params.openCallback );
+        ws.onpong = handleFuturesSocketHeartbeat;
+        ws.onerror = handleFuturesSocketError;
+        ws.onclose = handleFuturesSocketClose.bind( ws, params.reconnect );
+        ws.onmessage = data => {
             try {
                 callback( JSON.parse( data ).data );
             } catch ( error ) {
                 Binance.options.log( `futuresSubscribe: Parse error: ${ error.message }` );
             }
-        } );
+        };
         return ws;
     };
 
@@ -1565,7 +1568,8 @@ let api = function Binance( options = {} ) {
      * Used to subscribe to a single delivery websocket endpoint
      * @param {string} endpoint - endpoint to connect to
      * @param {function} callback - the function to call when information is received
-     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+     *     {function}, id {string}
      * @return {WebSocket} - websocket reference
      */
     const deliverySubscribeSingle = function ( endpoint, callback, params = {} ) {
@@ -1598,17 +1602,17 @@ let api = function Binance( options = {} ) {
         ws.reconnect = Binance.options.reconnect;
         ws.endpoint = endpoint;
         ws.isAlive = false;
-        ws.on( 'open', handleDeliverySocketOpen.bind( ws, params.openCallback ) );
-        ws.on( 'pong', handleDeliverySocketHeartbeat );
-        ws.on( 'error', handleDeliverySocketError );
-        ws.on( 'close', handleDeliverySocketClose.bind( ws, params.reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleDeliverySocketOpen.bind( ws, params.openCallback );
+        ws.onpong = handleDeliverySocketHeartbeat;
+        ws.onerror = handleDeliverySocketError;
+        ws.onclose = handleDeliverySocketClose.bind( ws, params.reconnect );
+        ws.onmessage = data => {
             try {
                 callback( JSON.parse( data ) );
             } catch ( error ) {
                 Binance.options.log( 'Parse error: ' + error.message );
             }
-        } );
+        };
         return ws;
     };
 
@@ -1616,7 +1620,8 @@ let api = function Binance( options = {} ) {
      * Used to subscribe to a combined delivery websocket endpoint
      * @param {string} streams - streams to connect to
      * @param {function} callback - the function to call when information is received
-     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+     * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+     *     {function}, id {string}
      * @return {WebSocket} - websocket reference
      */
     const deliverySubscribe = function ( streams, callback, params = {} ) {
@@ -1653,17 +1658,17 @@ let api = function Binance( options = {} ) {
         if ( Binance.options.verbose ) {
             Binance.options.log( `deliverySubscribe: Subscribed to [${ ws.endpoint }] ${ queryParams }` );
         }
-        ws.on( 'open', handleDeliverySocketOpen.bind( ws, params.openCallback ) );
-        ws.on( 'pong', handleDeliverySocketHeartbeat );
-        ws.on( 'error', handleDeliverySocketError );
-        ws.on( 'close', handleDeliverySocketClose.bind( ws, params.reconnect ) );
-        ws.on( 'message', data => {
+        ws.onopen = handleDeliverySocketOpen.bind( ws, params.openCallback );
+        ws.onpong = handleDeliverySocketHeartbeat;
+        ws.onerror = handleDeliverySocketError;
+        ws.onclose = handleDeliverySocketClose.bind( ws, params.reconnect );
+        ws.onmessage = data => {
             try {
                 callback( JSON.parse( data ).data );
             } catch ( error ) {
                 Binance.options.log( `deliverySubscribe: Parse error: ${ error.message }` );
             }
-        } );
+        };
         return ws;
     };
 
@@ -4705,7 +4710,8 @@ let api = function Binance( options = {} ) {
          * Subscribe to a single futures websocket
          * @param {string} url - the futures websocket endpoint
          * @param {function} callback - optional execution callback
-         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+         *     {function}, id {string}
          * @return {WebSocket} the websocket reference
          */
         futuresSubscribeSingle: function ( url, callback, params = {} ) {
@@ -4716,7 +4722,8 @@ let api = function Binance( options = {} ) {
          * Subscribe to a combined futures websocket
          * @param {string} streams - the list of websocket endpoints to connect to
          * @param {function} callback - optional execution callback
-         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+         *     {function}, id {string}
          * @return {WebSocket} the websocket reference
          */
         futuresSubscribe: function ( streams, callback, params = {} ) {
@@ -4952,7 +4959,8 @@ let api = function Binance( options = {} ) {
          * Subscribe to a single delivery websocket
          * @param {string} url - the delivery websocket endpoint
          * @param {function} callback - optional execution callback
-         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+         *     {function}, id {string}
          * @return {WebSocket} the websocket reference
          */
         deliverySubscribeSingle: function ( url, callback, params = {} ) {
@@ -4963,7 +4971,8 @@ let api = function Binance( options = {} ) {
          * Subscribe to a combined delivery websocket
          * @param {string} streams - the list of websocket endpoints to connect to
          * @param {function} callback - optional execution callback
-         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback {function}, id {string}
+         * @param {object} params - Optional reconnect {boolean} (whether to reconnect on disconnect), openCallback
+         *     {function}, id {string}
          * @return {WebSocket} the websocket reference
          */
         deliverySubscribe: function ( streams, callback, params = {} ) {

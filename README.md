@@ -16,7 +16,7 @@ color=blueviolet 🔵
 
 [![NPM](https://nodei.co/npm/node-binance-api.png?compact=true)](https://npmjs.org/package/node-binance-api)
 
-# Node Binance API
+# Node Binance API for browser
 This project is designed to help you make your own projects that interact with the [Binance API](https://github.com/binance-exchange/binance-official-api-docs). You can stream candlestick chart data, market depth, or use other advanced features such as setting stop losses and iceberg orders. This project seeks to have complete API coverage including WebSockets.
 
 <b><p align="center">
@@ -32,8 +32,8 @@ This project is designed to help you make your own projects that interact with t
   <a href="https://t.me/binance_api_english">Support</a>
 </p></b>
 
-#### Installation: **`npm install -s node-binance-api`**
-[![npm install node-binance-api](https://nodei.co/npm/node-binance-api.png?mini=true)](https://npmjs.org/package/node-binance-api)
+#### Installation: **`npm install -s node-binance-api-for-browser`**
+[![npm install node-binance-api-for-browser](https://nodei.co/npm/node-binance-api.png?mini=true)](https://npmjs.org/package/node-binance-api-for-browser)
 
 #### Getting started
 ```javascript
